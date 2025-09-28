@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zozzetta - Gioco di Carte Napoletane</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a4d3a 0%, #2d5a47 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-table {
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f5132 0%, #198754 50%, #20c997 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .opponent-area {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .player-area {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .card {
+            width: 50px;
+            height: 75px;
+            border-radius: 6px;
+            border: 2px solid #2c3e50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .card:active {
+            transform: translateY(-5px);
+        }
+
+        /* Carte del giocatore (napolitane) */
+        .player-card {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Carte dell'avversario (retro) */
+        .opponent-card {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: white;
+            border-color: #a71e2a;
+        }
+
+        .opponent-card .card-back {
+            font-size: 16px;
+        }
+
+        .table-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+        }
+
+        .table-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .center-cards {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .deck-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .deck-card {
+            width: 60px;
+            height: 90px;
+            border-radius: 8px;
+            border: 3px solid #2c3e50;
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            margin-bottom: 10px;
+        }
+
+        .deck-back {
+            font-size: 24px;
+        }
+
+        .deck-count {
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.6);
+        }
+
+        .play-button:active {
+            transform: translateY(0);
+        }
+
+        .play-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .turn-indicator {
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid #2c3e50;
+            margin: 15px 0;
+        }
+
+        .player-captured {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .captured-deck {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .captured-card {
+            width: 40px;
+            height: 60px;
+            border-radius: 6px;
+            border: 2px solid #2c3e50;
+            background: linear-gradient(145deg, #28a745, #20c997);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .captured-count {
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 2px solid #2c3e50;
+        }
+        
+        .bot-captured {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="game-table">
+        <!-- Area avversario (carte retro) -->
+        <div class="opponent-area">
+            <!-- Le carte del bot appariranno qui -->
+        </div>
+
+        <!-- Centro tavolo -->
+        <div class="table-center">
+            <div class="deck-container">
+                <div class="deck-card">
+                    <div class="deck-back">🂠</div>
+                </div>
+                <div class="deck-count" id="deckCount">40</div>
+                <button class="play-button" id="playButton" onclick="startGame()">PLAY</button>
+            </div>
+            <div class="table-text">ZOZZETTA</div>
+            <div class="turn-indicator" id="turnIndicator" style="display: none;">Turno 1</div>
+            <div class="center-cards">
+                <!-- Le carte giocate appariranno qui -->
+            </div>
+        </div>
+
+        <!-- Area giocatore (carte napoletane) -->
+        <div class="player-area">
+            <!-- Le carte del giocatore appariranno qui -->
+        </div>
+        
+        <!-- Contatore carte mangiate dal giocatore -->
+        <div class="player-captured">
+            <div class="captured-deck">
+                <div class="captured-card">🂠</div>
+                <div class="captured-count" id="playerCapturedCount">0</div>
+            </div>
+        </div>
+        
+        <!-- Contatore carte mangiate dal bot -->
+        <div class="bot-captured">
+            <div class="captured-deck">
+                <div class="captured-card">🂠</div>
+                <div class="captured-count" id="botCapturedCount">0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isPlayerTurn = true; // Controlla se è il turno del giocatore
+        
+        // Mazzo completo di 40 carte napoletane (uniche)
+        const fullDeck = [
+            // Spade (1-10)
+            { image: 'public/cards/spade1.png', name: 'Asso di Spade', value: 1, suit: 'spade' },
+            { image: 'public/cards/spade2.png', name: '2 di Spade', value: 2, suit: 'spade' },
+            { image: 'public/cards/spade3.png', name: '3 di Spade', value: 3, suit: 'spade' },
+            { image: 'public/cards/spade4.png', name: '4 di Spade', value: 4, suit: 'spade' },
+            { image: 'public/cards/spade5.png', name: '5 di Spade', value: 5, suit: 'spade' },
+            { image: 'public/cards/spade6.png', name: '6 di Spade', value: 6, suit: 'spade' },
+            { image: 'public/cards/spade7.png', name: '7 di Spade', value: 7, suit: 'spade' },
+            { image: 'public/cards/spade8.png', name: 'Donna di Spade', value: 8, suit: 'spade' },
+            { image: 'public/cards/spade9.png', name: 'Cavallo di Spade', value: 9, suit: 'spade' },
+            { image: 'public/cards/spade10.png', name: 'Re di Spade', value: 10, suit: 'spade' },
+            
+            // Coppe (1-10)
+            { image: 'public/cards/coppe1.png', name: 'Asso di Coppe', value: 1, suit: 'coppe' },
+            { image: 'public/cards/coppe2.png', name: '2 di Coppe', value: 2, suit: 'coppe' },
+            { image: 'public/cards/coppe3.png', name: '3 di Coppe', value: 3, suit: 'coppe' },
+            { image: 'public/cards/coppe4.png', name: '4 di Coppe', value: 4, suit: 'coppe' },
+            { image: 'public/cards/coppe5.png', name: '5 di Coppe', value: 5, suit: 'coppe' },
+            { image: 'public/cards/coppe6.png', name: '6 di Coppe', value: 6, suit: 'coppe' },
+            { image: 'public/cards/coppe7.png', name: '7 di Coppe', value: 7, suit: 'coppe' },
+            { image: 'public/cards/coppe8.png', name: 'Donna di Coppe', value: 8, suit: 'coppe' },
+            { image: 'public/cards/coppe9.png', name: 'Cavallo di Coppe', value: 9, suit: 'coppe' },
+            { image: 'public/cards/coppe10.png', name: 'Re di Coppe', value: 10, suit: 'coppe' },
+            
+            // Denari (1-10)
+            { image: 'public/cards/denara1.png', name: 'Asso di Denari', value: 1, suit: 'denari' },
+            { image: 'public/cards/denara2.png', name: '2 di Denari', value: 2, suit: 'denari' },
+            { image: 'public/cards/denara3.png', name: '3 di Denari', value: 3, suit: 'denari' },
+            { image: 'public/cards/denara4.png', name: '4 di Denari', value: 4, suit: 'denari' },
+            { image: 'public/cards/denara5.png', name: '5 di Denari', value: 5, suit: 'denari' },
+            { image: 'public/cards/denara6.png', name: '6 di Denari', value: 6, suit: 'denari' },
+            { image: 'public/cards/denara7.png', name: '7 di Denari', value: 7, suit: 'denari' },
+            { image: 'public/cards/denara8.png', name: 'Donna di Denari', value: 8, suit: 'denari' },
+            { image: 'public/cards/denara9.png', name: 'Cavallo di Denari', value: 9, suit: 'denari' },
+            { image: 'public/cards/denara10.png', name: 'Re di Denari', value: 10, suit: 'denari' },
+            
+            // Bastoni (1-10)
+            { image: 'public/cards/bastoni1.png', name: 'Asso di Bastoni', value: 1, suit: 'bastoni' },
+            { image: 'public/cards/bastoni2.png', name: '2 di Bastoni', value: 2, suit: 'bastoni' },
+            { image: 'public/cards/bastoni3.png', name: '3 di Bastoni', value: 3, suit: 'bastoni' },
+            { image: 'public/cards/bastoni4.png', name: '4 di Bastoni', value: 4, suit: 'bastoni' },
+            { image: 'public/cards/bastoni5.png', name: '5 di Bastoni', value: 5, suit: 'bastoni' },
+            { image: 'public/cards/bastoni6.png', name: '6 di Bastoni', value: 6, suit: 'bastoni' },
+            { image: 'public/cards/bastoni7.png', name: '7 di Bastoni', value: 7, suit: 'bastoni' },
+            { image: 'public/cards/bastoni8.png', name: 'Donna di Bastoni', value: 8, suit: 'bastoni' },
+            { image: 'public/cards/bastoni9.png', name: 'Cavallo di Bastoni', value: 9, suit: 'bastoni' },
+            { image: 'public/cards/bastoni10.png', name: 'Re di Bastoni', value: 10, suit: 'bastoni' }
+        ];
+        
+        // Array per tracciare le carte usate
+        let usedCards = [];
+        let playerHand = [];
+        let botHand = [];
+        let tableCards = [];
+        let gameStarted = false;
+        let currentTurn = 1;
+        let isDistributing = false;
+        let playerCapturedCards = 0;
+        let botCapturedCards = 0;
+        let isPlayerTurnReallyFinished = true; // Inizia come true per permettere al giocatore di giocare
+        let isBotTurnReallyFinished = true; // Inizia come true per permettere al giocatore di giocare
+
+        // Funzione per mescolare il mazzo
+        function shuffleDeck(deck) {
+            const shuffled = [...deck];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Funzione per iniziare il gioco
+        function startGame() {
+            if (gameStarted) return;
+            
+            gameStarted = true;
+            isDistributing = true;
+            isPlayerTurn = true;
+            isPlayerTurnReallyFinished = true;
+            isBotTurnReallyFinished = true;
+            const playButton = document.getElementById('playButton');
+            playButton.disabled = true;
+            playButton.textContent = 'DISTRIBUENDO...';
+            
+            // Mescola il mazzo
+            const shuffledDeck = shuffleDeck(fullDeck);
+            
+            // Distribuisci le carte sequenzialmente
+            distributeCardsSequentially(shuffledDeck);
+        }
+
+        // Funzione per distribuire le carte una alla volta
+        function distributeCardsSequentially(deck) {
+            let cardIndex = 0;
+            let distributionStep = 0;
+            
+            const distributeNext = () => {
+                if (distributionStep < 6) {
+                    // Distribuisci una carta al giocatore o al bot alternativamente
+                    if (distributionStep % 2 === 0) {
+                        // Carta al giocatore
+                        playerHand.push(deck[cardIndex]);
+                        usedCards.push(deck[cardIndex]);
+                        updatePlayerCards();
+                    } else {
+                        // Carta al bot
+                        botHand.push(deck[cardIndex]);
+                        usedCards.push(deck[cardIndex]);
+                        updateBotCards();
+                    }
+                    
+                    cardIndex++;
+                    distributionStep++;
+                    updateDeckCount();
+                    
+                    // Continua la distribuzione dopo 500ms
+                    setTimeout(distributeNext, 500);
+                } else if (distributionStep < 10) {
+                    // Distribuisci le 4 carte al tavolo
+                    tableCards.push(deck[cardIndex]);
+                    usedCards.push(deck[cardIndex]);
+                    cardIndex++;
+                    distributionStep++;
+                    updateTableCards();
+                    updateDeckCount();
+                    
+                    // Continua la distribuzione dopo 300ms
+                    setTimeout(distributeNext, 300);
+                } else {
+                    // Distribuzione completata
+                    isDistributing = false;
+                    isPlayerTurn = true;
+                    isPlayerTurnReallyFinished = true;
+                    isBotTurnReallyFinished = true;
+                    const playButton = document.getElementById('playButton');
+                    playButton.style.display = 'none';
+                    
+                    const turnIndicator = document.getElementById('turnIndicator');
+                    turnIndicator.style.display = 'block';
+                    
+                    console.log('Distribuzione completata!');
+                    console.log('Carte rimanenti nel mazzo:', 40 - usedCards.length);
+                    console.log('Carte del giocatore:', playerHand.length);
+                    console.log('Carte del bot:', botHand.length);
+                    console.log('Carte sul tavolo:', tableCards.length);
+                }
+            };
+            
+            distributeNext();
+        }
+
+        // Funzione per aggiornare le carte del giocatore
+        function updatePlayerCards() {
+            const playerArea = document.querySelector('.player-area');
+            playerArea.innerHTML = '';
+            
+            playerHand.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card player-card';
+                cardElement.style.backgroundImage = `url('${card.image}')`;
+                cardElement.onclick = () => playCard(cardElement);
+                cardElement.dataset.cardIndex = index;
+                playerArea.appendChild(cardElement);
+            });
+        }
+
+        // Funzione per aggiornare le carte del bot
+        function updateBotCards() {
+            const opponentArea = document.querySelector('.opponent-area');
+            opponentArea.innerHTML = '';
+            
+            botHand.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card opponent-card';
+                cardElement.innerHTML = '<div class="card-back">🂠</div>';
+                opponentArea.appendChild(cardElement);
+            });
+        }
+
+        // Funzione per aggiornare le carte sul tavolo
+        function updateTableCards() {
+            const centerCards = document.querySelector('.center-cards');
+            centerCards.innerHTML = '';
+            
+            tableCards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card center-card';
+                cardElement.style.backgroundImage = `url('${card.image}')`;
+                cardElement.onclick = () => takeCardFromTable(cardElement);
+                cardElement.dataset.cardIndex = index;
+                centerCards.appendChild(cardElement);
+            });
+        }
+
+        // Funzione per aggiornare il contatore del mazzo
+        function updateDeckCount() {
+            const remainingCards = fullDeck.length - usedCards.length;
+            const deckCountElement = document.getElementById('deckCount');
+            deckCountElement.textContent = remainingCards;
+        }
+
+        // Funzione per trovare le carte corrispondenti sul tavolo
+        function findMatchingCards(playedCard, tableCards) {
+            const matchingCards = [];
+            
+            tableCards.forEach(tableCard => {
+                // Controlla se il valore è uguale (numero o figura)
+                if (playedCard.value === tableCard.value) {
+                    matchingCards.push(tableCard);
+                }
+            });
+            
+            return matchingCards;
+        }
+
+        // Funzione per evidenziare le carte corrispondenti
+        function highlightMatchingCards(matchingCards) {
+            const centerCards = document.querySelectorAll('.center-card');
+            centerCards.forEach(cardElement => {
+                const cardIndex = parseInt(cardElement.dataset.cardIndex);
+                const card = tableCards[cardIndex];
+                
+                if (matchingCards.includes(card)) {
+                    cardElement.style.transform = 'scale(1.2)';
+                    cardElement.style.boxShadow = '0 0 20px #ffd700';
+                    cardElement.style.border = '3px solid #ffd700';
+                }
+            });
+        }
+
+        // Funzione per aggiornare il contatore delle carte mangiate
+        function updateCapturedCount() {
+            const playerCountElement = document.getElementById('playerCapturedCount');
+            playerCountElement.textContent = playerCapturedCards;
+        }
+        
+        // Funzione per aggiornare il contatore delle carte catturate dal bot
+        function updateBotCapturedCount() {
+            const botCapturedCountElement = document.getElementById('botCapturedCount');
+            if (botCapturedCountElement) {
+                botCapturedCountElement.textContent = botCapturedCards;
+            }
+        }
+
+        function playCard(cardElement) {
+            console.log('Carta cliccata:', {
+                isPlayerTurn: isPlayerTurn,
+                isDistributing: isDistributing,
+                hasPlayerCardClass: cardElement.classList.contains('player-card'),
+                cardElement: cardElement
+            });
+            
+            // Blocca il gioco durante la distribuzione
+            if (isDistributing) {
+                console.log('Distribuzione in corso, attendere...');
+                return;
+            }
+            
+            // Verifica se è il turno del giocatore, se la carta è del giocatore e se il bot ha finito il suo turno
+            if (isPlayerTurn && cardElement.classList.contains('player-card') && isBotTurnReallyFinished) {
+                const cardIndex = parseInt(cardElement.dataset.cardIndex);
+                const playedCard = playerHand[cardIndex];
+                
+                // Controlla se ci sono corrispondenze sul tavolo
+                const matchingCards = findMatchingCards(playedCard, tableCards);
+                
+                if (matchingCards.length > 0) {
+                    // Prima aggiungi la carta al tavolo per l'effetto visivo
+                    tableCards.push(playedCard);
+                    updateTableCards();
+                    
+                    // Aspetta un po' per mostrare la carta sul tavolo
+                    setTimeout(() => {
+                        // Evidenzia le carte corrispondenti (inclusa quella del giocatore)
+                        highlightMatchingCards([playedCard, ...matchingCards]);
+                        
+                        // Aspetta un po' per l'effetto di evidenziazione
+                        setTimeout(() => {
+                            // Rimuovi le carte corrispondenti dal tavolo
+                            matchingCards.forEach(matchingCard => {
+                                const index = tableCards.indexOf(matchingCard);
+                                if (index > -1) {
+                                    tableCards.splice(index, 1);
+                                }
+                            });
+                            
+                            // Rimuovi anche la carta del giocatore dal tavolo
+                            const playerCardIndex = tableCards.indexOf(playedCard);
+                            if (playerCardIndex > -1) {
+                                tableCards.splice(playerCardIndex, 1);
+                            }
+                            
+                            // Aggiorna il contatore delle carte mangiate
+                            playerCapturedCards += matchingCards.length + 1; // +1 per la carta del giocatore
+                            updateCapturedCount();
+                            
+                            // Aggiorna la visualizzazione
+                            updateTableCards();
+                            
+                            console.log('Carte corrispondenti trovate! Carte rimosse:', matchingCards.map(c => c.name));
+                        }, 1000);
+                    }, 500);
+                    
+                    // Rimuovi la carta dalla mano del giocatore
+                    playerHand.splice(cardIndex, 1);
+                } else {
+                    // Nessuna corrispondenza, aggiungi la carta al tavolo
+                    tableCards.push(playedCard);
+                    playerHand.splice(cardIndex, 1);
+                }
+                
+                // Aggiorna le carte visibili
+                updatePlayerCards();
+                updateTableCards();
+                updateDeckCount();
+                
+                // Controlla se il giocatore ha finito le carte
+                console.log('Giocatore ha giocato carta. Carte rimanenti:', playerHand.length);
+                if (playerHand.length === 0) {
+                    console.log('Giocatore ha finito le carte!');
+                    // Il giocatore ha finito, controlla se entrambi hanno finito
+                    checkIfBothPlayersFinished();
+                } else {
+                    console.log('Giocatore ha ancora carte, bot gioca');
+                    // Disabilita il turno del giocatore
+                    isPlayerTurn = false;
+                    isPlayerTurnReallyFinished = false;
+                    isBotTurnReallyFinished = false; // Reset del flag del bot
+                    
+                    // Se ci sono corrispondenze, aspetta che finisca l'animazione
+                    if (matchingCards.length > 0) {
+                        // Il bot gioca dopo che finisce l'animazione (500ms + 1000ms + 500ms)
+                        setTimeout(() => {
+                            isPlayerTurnReallyFinished = true;
+                            botPlayCard();
+                        }, 2000);
+                    } else {
+                        // Nessuna corrispondenza, il bot gioca subito
+                        setTimeout(() => {
+                            isPlayerTurnReallyFinished = true;
+                            botPlayCard();
+                        }, 1000);
+                    }
+                }
+            }
+            
+            // Aggiungi effetto visivo quando si clicca una carta
+            cardElement.style.transform = 'translateY(-15px) scale(1.05)';
+            cardElement.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.5)';
+            
+            // Rimuovi l'effetto dopo un po'
+            setTimeout(() => {
+                cardElement.style.transform = 'translateY(-10px) scale(1)';
+                cardElement.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.4)';
+            }, 200);
+        }
+
+
+        function takeCardFromTable(cardElement) {
+            // Aggiungi effetto visivo
+            cardElement.style.transform = 'translateY(-5px) scale(1.1)';
+            cardElement.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.6)';
+            
+            // Per ora, le carte del tavolo non vengono rimosse quando cliccate
+            // Potremmo aggiungere logica per "prenderle" in futuro
+            setTimeout(() => {
+                cardElement.style.transform = 'translateY(0) scale(1)';
+                cardElement.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+                console.log('Carta del tavolo cliccata (non rimossa)');
+            }, 200);
+        }
+
+        function botPlayCard() {
+            // Controlla se il turno del giocatore è veramente finito
+            if (!isPlayerTurnReallyFinished) {
+                console.log('Bot non può giocare: turno giocatore non finito');
+                return;
+            }
+            
+            console.log('Bot gioca carta. Carte rimanenti:', botHand.length);
+            if (botHand.length > 0) {
+                // Il bot gioca la prima carta disponibile
+                const playedCard = botHand[0];
+                botHand.shift(); // Rimuovi la carta dalla mano del bot
+                
+                // Aggiorna le carte del bot (rimuove la carta dalla visualizzazione)
+                updateBotCards();
+                
+                // Controlla se ci sono corrispondenze sul tavolo
+                const matchingCards = findMatchingCards(playedCard, tableCards);
+                
+                if (matchingCards.length > 0) {
+                    // Prima aggiungi la carta del bot al tavolo per l'effetto visivo
+                    tableCards.push(playedCard);
+                    updateTableCards();
+                    
+                    // Aspetta un po' per mostrare la carta sul tavolo
+                    setTimeout(() => {
+                        // Evidenzia le carte corrispondenti (inclusa quella del bot)
+                        highlightMatchingCards([playedCard, ...matchingCards]);
+                        
+                        // Aspetta un po' per l'effetto di evidenziazione
+                        setTimeout(() => {
+                            // Rimuovi le carte corrispondenti dal tavolo
+                            matchingCards.forEach(matchingCard => {
+                                const index = tableCards.indexOf(matchingCard);
+                                if (index > -1) {
+                                    tableCards.splice(index, 1);
+                                }
+                            });
+                            
+                            // Rimuovi anche la carta del bot dal tavolo
+                            const botCardIndex = tableCards.indexOf(playedCard);
+                            if (botCardIndex > -1) {
+                                tableCards.splice(botCardIndex, 1);
+                            }
+                            
+                            // Aggiorna il tavolo
+                            updateTableCards();
+                            
+                            // Incrementa il contatore delle carte catturate dal bot
+                            botCapturedCards += matchingCards.length + 1; // +1 per la carta giocata
+                            updateBotCapturedCount();
+                            
+                            console.log('Bot ha trovato corrispondenze! Carte rimosse:', matchingCards.map(c => c.name));
+                            console.log('Carte catturate dal bot:', botCapturedCards);
+                            
+                            // Il turno del bot è finito
+                            isBotTurnReallyFinished = true;
+                            
+                            // Controlla se entrambi i giocatori hanno finito
+                            checkIfBothPlayersFinished();
+                        }, 1000);
+                    }, 500);
+                } else {
+                    // Nessuna corrispondenza, aggiungi la carta al tavolo
+                    tableCards.push(playedCard);
+                    updateTableCards();
+                    updateDeckCount();
+                    
+                    // Il turno del bot è finito
+                    isBotTurnReallyFinished = true;
+                    
+                    // Controlla se entrambi i giocatori hanno finito
+                    checkIfBothPlayersFinished();
+                }
+                
+                console.log('Bot ha giocato:', playedCard.name);
+                console.log('Bot carte rimanenti dopo:', botHand.length);
+            } else {
+                console.log('Bot non ha più carte');
+                // Se il bot non ha più carte, controlla se entrambi hanno finito
+                checkIfBothPlayersFinished();
+            }
+        }
+
+        // Funzione per controllare se entrambi i giocatori hanno finito le carte
+        function checkIfBothPlayersFinished() {
+            const remainingCards = fullDeck.length - usedCards.length;
+            console.log('Controllo se entrambi hanno finito:', {
+                playerHand: playerHand.length,
+                botHand: botHand.length,
+                remainingCards: remainingCards
+            });
+            
+            if (playerHand.length === 0 && botHand.length === 0) {
+                if (remainingCards >= 6) {
+                    console.log('Entrambi hanno finito! Mostro il pulsante DISTRIBUISCI');
+                    // Entrambi hanno finito le carte e ci sono abbastanza carte per distribuire, mostra il pulsante per il turno successivo
+                    showDistributeButton();
+                } else {
+                    console.log('Entrambi hanno finito ma non ci sono abbastanza carte per distribuire. Gioco finito!');
+                    // Entrambi hanno finito le carte ma non ci sono abbastanza carte per distribuire, il gioco è finito
+                    showGameOver();
+                }
+            } else if (playerHand.length === 0 && botHand.length > 0) {
+                console.log('Giocatore ha finito, bot deve giocare la sua ultima carta');
+                // Il giocatore ha finito ma il bot ha ancora carte, fai giocare il bot
+                isPlayerTurn = false;
+                setTimeout(() => {
+                    botPlayCard();
+                }, 1000);
+            } else {
+                console.log('Uno dei due ha ancora carte, riabilito il turno del giocatore');
+                // Riabilita il turno del giocatore
+                isPlayerTurn = true;
+                isPlayerTurnReallyFinished = true; // Reset del flag per il nuovo turno
+                isBotTurnReallyFinished = true; // Reset del flag del bot
+            }
+        }
+
+        // Funzione per mostrare il pulsante di distribuzione
+        function showDistributeButton() {
+            const deckContainer = document.querySelector('.deck-container');
+            const distributeButton = document.createElement('button');
+            distributeButton.className = 'play-button';
+            distributeButton.id = 'distributeButton';
+            distributeButton.textContent = 'DISTRIBUISCI';
+            distributeButton.onclick = distributeNextTurn;
+            deckContainer.appendChild(distributeButton);
+            
+            // Aggiorna l'indicatore del turno
+            currentTurn++;
+            const turnIndicator = document.getElementById('turnIndicator');
+            turnIndicator.textContent = `Turno ${currentTurn}`;
+        }
+
+        // Funzione per mostrare la fine del gioco
+        function showGameOver() {
+            const deckContainer = document.querySelector('.deck-container');
+            const gameOverButton = document.createElement('button');
+            gameOverButton.className = 'play-button';
+            gameOverButton.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+            gameOverButton.textContent = 'GIOCO FINITO';
+            gameOverButton.disabled = true;
+            deckContainer.appendChild(gameOverButton);
+            
+            // Aggiorna l'indicatore del turno
+            const turnIndicator = document.getElementById('turnIndicator');
+            turnIndicator.textContent = 'GIOCO FINITO';
+            turnIndicator.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+            turnIndicator.style.color = 'white';
+            
+            console.log('Gioco finito! Non ci sono abbastanza carte per distribuire.');
+        }
+
+        // Funzione per distribuire le carte del turno successivo
+        function distributeNextTurn() {
+            if (isDistributing) return;
+            
+            isDistributing = true;
+            const distributeButton = document.getElementById('distributeButton');
+            distributeButton.disabled = true;
+            distributeButton.textContent = 'DISTRIBUENDO...';
+            
+            // Ottieni le carte rimanenti dal mazzo
+            const remainingCards = fullDeck.filter(card => !usedCards.includes(card));
+            const shuffledRemaining = shuffleDeck(remainingCards);
+            
+            // Distribuisci 3 carte a testa (senza carte a terra)
+            distributeCardsForNextTurn(shuffledRemaining);
+        }
+
+        // Funzione per distribuire le carte del turno successivo
+        function distributeCardsForNextTurn(deck) {
+            let cardIndex = 0;
+            let distributionStep = 0;
+            
+            const distributeNext = () => {
+                if (distributionStep < 6) {
+                    // Distribuisci una carta al giocatore o al bot alternativamente
+                    if (distributionStep % 2 === 0) {
+                        // Carta al giocatore
+                        playerHand.push(deck[cardIndex]);
+                        usedCards.push(deck[cardIndex]);
+                        updatePlayerCards();
+                    } else {
+                        // Carta al bot
+                        botHand.push(deck[cardIndex]);
+                        usedCards.push(deck[cardIndex]);
+                        updateBotCards();
+                    }
+                    
+                    cardIndex++;
+                    distributionStep++;
+                    updateDeckCount();
+                    
+                    // Continua la distribuzione dopo 500ms
+                    setTimeout(distributeNext, 500);
+                } else {
+                    // Distribuzione completata
+                    isDistributing = false;
+                    isPlayerTurn = true; // Abilita il turno del giocatore
+                    isPlayerTurnReallyFinished = true; // Reset del flag per il nuovo turno
+                    isBotTurnReallyFinished = true; // Reset del flag del bot
+                    const distributeButton = document.getElementById('distributeButton');
+                    distributeButton.remove();
+                    
+                    console.log(`Turno ${currentTurn} distribuito!`);
+                    console.log('Carte rimanenti nel mazzo:', 40 - usedCards.length);
+                    console.log('Carte del giocatore:', playerHand.length);
+                    console.log('Carte del bot:', botHand.length);
+                }
+            };
+            
+            distributeNext();
+        }
+
+
+        // Inizializza il gioco al caricamento
+        window.addEventListener('load', () => {
+            // Inizializza con mazzo vuoto e contatore a 40
+            updateDeckCount();
+            
+            // Nascondi le aree delle carte inizialmente
+            document.querySelector('.player-area').innerHTML = '';
+            document.querySelector('.opponent-area').innerHTML = '';
+            document.querySelector('.center-cards').innerHTML = '';
+        });
+    </script>
+</body>
+</html>
