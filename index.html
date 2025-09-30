@@ -1203,13 +1203,11 @@
 
         // Funzione per mostrare il pulsante di distribuzione
         function showDistributeButton() {
-            const deckContainer = document.querySelector('.deck-container');
-            const distributeButton = document.createElement('button');
-            distributeButton.className = 'play-button';
-            distributeButton.id = 'distributeButton';
-            distributeButton.textContent = 'DISTRIBUISCI';
-            distributeButton.onclick = distributeNextTurn;
-            deckContainer.appendChild(distributeButton);
+            const playButton = document.getElementById('playButton');
+            playButton.style.display = 'block';
+            playButton.disabled = false;
+            playButton.textContent = 'DISTRIBUISCI';
+            playButton.onclick = distributeNextTurn;
             
             // Aggiorna l'indicatore del turno
             currentTurn++;
@@ -1219,13 +1217,12 @@
 
         // Funzione per mostrare la fine del gioco
         function showGameOver() {
-            const deckContainer = document.querySelector('.deck-container');
-            const gameOverButton = document.createElement('button');
-            gameOverButton.className = 'play-button';
-            gameOverButton.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
-            gameOverButton.textContent = 'GIOCO FINITO';
-            gameOverButton.disabled = true;
-            deckContainer.appendChild(gameOverButton);
+            const playButton = document.getElementById('playButton');
+            playButton.style.display = 'block';
+            playButton.disabled = true;
+            playButton.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+            playButton.textContent = 'GIOCO FINITO';
+            playButton.onclick = null;
             
             // Aggiorna l'indicatore del turno
             const turnIndicator = document.getElementById('turnIndicator');
@@ -1239,9 +1236,8 @@
             if (isDistributing) return;
             
             isDistributing = true;
-            const distributeButton = document.getElementById('distributeButton');
-            distributeButton.disabled = true;
-            distributeButton.textContent = 'DISTRIBUENDO...';
+            const playButton = document.getElementById('playButton');
+            playButton.disabled = true;
             
             // Ottieni le carte rimanenti dal mazzo
             const remainingCards = fullDeck.filter(card => !usedCards.includes(card));
@@ -1283,8 +1279,8 @@
                     isPlayerTurn = true; // Abilita il turno del giocatore
                     isPlayerTurnReallyFinished = true; // Reset del flag per il nuovo turno
                     isBotTurnReallyFinished = true; // Reset del flag del bot
-                    const distributeButton = document.getElementById('distributeButton');
-                    distributeButton.remove();
+                    const playButton = document.getElementById('playButton');
+                    playButton.style.display = 'none';
                     
                     // Aggiorna l'indicatore del turno
                     const turnIndicator = document.getElementById('turnIndicator');
