@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zozzetta - Gioco di Carte Napoletane</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         * {
             margin: 0;
@@ -16,30 +17,54 @@
             background: linear-gradient(135deg, #1a4d3a 0%, #2d5a47 100%);
             height: 100vh;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
+            padding-top: 7vh; /* Spazio per la barra di navigazione */
         }
 
         .game-table {
             width: 100%;
-            height: 100vh;
-            background: linear-gradient(135deg, #0f5132 0%, #198754 50%, #20c997 100%);
+            height: 93vh; /* 93% dell'altezza dello schermo */
+            background: url('public/background/classic.jpg') center/cover no-repeat;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
+            box-sizing: border-box;
         }
 
         .opponent-area {
             display: flex;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            height: 140px; /* Altezza fissa */
+            width: 70%; /* 70% della larghezza dello schermo */
+            align-items: center;
+            justify-content: center;
         }
 
         .player-area {
             display: flex;
             gap: 15px;
-            margin-top: 20px;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            height: 140px; /* Altezza fissa */
+            width: 70%; /* 70% della larghezza dello schermo */
+            align-items: center;
+            justify-content: center;
         }
 
         .card {
@@ -52,7 +77,7 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 22px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -80,13 +105,16 @@
 
         /* Carte dell'avversario (retro) */
         .opponent-card {
-            background: linear-gradient(145deg, #dc3545, #c82333);
+            background: 
+                linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.1) 75%),
+                linear-gradient(145deg, #dc3545, #c82333);
+            background-size: 8px 8px, 100% 100%;
             color: white;
-            border-color: #a71e2a;
+            border: 2px solid #a71e2a;
         }
 
         .opponent-card .card-back {
-            font-size: 16px;
+            font-size: 22px;
         }
 
         .table-center {
@@ -96,166 +124,558 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            gap: 20px;
         }
 
-        .table-text {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 24px;
+        .navbar-title {
+            color: white;
+            font-size: 20px;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
         }
 
         .center-cards {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: center;
+            overflow-x: auto;
+            padding: 5px;
+        }
+
+        .cards-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 5px;
         }
 
         .deck-container {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 20px;
+            z-index: 100;
         }
 
         .deck-card {
-            width: 60px;
-            height: 90px;
-            border-radius: 8px;
-            border: 3px solid #2c3e50;
-            background: linear-gradient(145deg, #dc3545, #c82333);
+            position: relative;
+            width: 50px;
+            height: 75px;
+            border-radius: 6px;
+            border: 2px solid #a71e2a;
+            background: 
+                linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.1) 75%),
+                linear-gradient(145deg, #dc3545, #c82333);
+            background-size: 8px 8px, 100% 100%;
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         .deck-back {
-            font-size: 24px;
+            font-size: 30px;
         }
 
         .deck-count {
-            background: rgba(255, 255, 255, 0.9);
-            color: #2c3e50;
-            padding: 8px 12px;
-            border-radius: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
             font-weight: bold;
-            font-size: 18px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border: 2px solid #2c3e50;
-            margin-bottom: 15px;
+            z-index: 10;
+            white-space: nowrap;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
 
         .play-button {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 18px;
-            font-weight: bold;
+            position: fixed;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
             cursor: pointer;
-            box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .play-triangle {
+            width: 0;
+            height: 0;
+            border-left: 30px solid white;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            margin-left: 5px; /* Sposta leggermente il triangolo per centrarlo */
         }
 
         .play-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.6);
+            transform: translateX(-50%) translateY(-3px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         }
 
         .play-button:active {
-            transform: translateY(0);
+            transform: translateX(-50%) translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .play-button:disabled {
             background: #6c757d;
+            border-color: #495057;
             cursor: not-allowed;
-            transform: none;
+            transform: translateX(-50%);
             box-shadow: none;
         }
 
         .turn-indicator {
-            background: rgba(255, 255, 255, 0.9);
-            color: #2c3e50;
-            padding: 10px 20px;
-            border-radius: 25px;
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%) rotate(90deg);
+            color: white;
             font-weight: bold;
-            font-size: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border: 2px solid #2c3e50;
-            margin: 15px 0;
+            font-size: 18px;
+            z-index: 100;
+            white-space: nowrap;
         }
 
         .player-captured {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            right: 15px;
         }
 
         .captured-deck {
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            height: 100%;
         }
 
         .captured-card {
-            width: 40px;
-            height: 60px;
+            position: relative;
+            width: 50px;
+            height: 75px;
             border-radius: 6px;
-            border: 2px solid #2c3e50;
-            background: linear-gradient(145deg, #28a745, #20c997);
+            border: 2px solid #a71e2a;
+            background: 
+                linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.1) 75%),
+                linear-gradient(145deg, #dc3545, #c82333);
+            background-size: 8px 8px, 100% 100%;
             color: white;
-            display: flex;
             justify-content: center;
             align-items: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            margin-bottom: 8px;
             font-size: 18px;
         }
 
         .captured-count {
-            background: rgba(255, 255, 255, 0.9);
-            color: #2c3e50;
-            padding: 6px 10px;
-            border-radius: 15px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
             font-weight: bold;
-            font-size: 16px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            border: 2px solid #2c3e50;
+            z-index: 10;
+            white-space: nowrap;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            line-height: 1;
         }
         
         .bot-captured {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            right: 15px;
+        }
+
+        .area-label {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid #2c3e50;
+        }
+
+        .opponent-area .area-label {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border-color: #a71e2a;
+        }
+
+        .player-area .area-label {
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+            border-color: #1e7e34;
+        }
+
+        /* Barra di navigazione superiore */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 7vh; /* 7% dell'altezza dello schermo */
+            background: linear-gradient(135deg, #8B4513 0%, #CD853F 50%, #D2691E 100%);
+            border-bottom: 3px solid #654321;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .home-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .home-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .restart-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .restart-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .home-button:active {
+            transform: translateY(0);
+        }
+
+        .restart-button:active {
+            transform: translateY(0);
+        }
+
+        .home-icon {
+            width: 24px;
+            height: 24px;
+            color: #4a2f1a;
+            transition: all 0.3s ease;
+            transform: scaleX(-1); /* Inverte orizzontalmente l'icona */
+        }
+
+        .restart-icon {
+            width: 24px;
+            height: 24px;
+            color: #4a2f1a;
+            transition: all 0.3s ease;
+        }
+
+        .home-button:hover .home-icon {
+            color: #2f1b14;
+            transform: scaleX(-1) scale(1.1); /* Mantiene l'inversione e aggiunge lo scale */
+        }
+
+        .restart-button:hover .restart-icon {
+            color: #2f1b14;
+            transform: scale(1.1);
+        }
+
+        .burger-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .burger-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .burger-button:active {
+            transform: translateY(0);
+        }
+
+        .burger-icon {
+            width: 24px;
+            height: 24px;
+            color: #4a2f1a;
+            transition: all 0.3s ease;
+        }
+
+        .burger-button:hover .burger-icon {
+            color: #2f1b14;
+            transform: scale(1.1);
+        }
+
+        /* Responsive per mobile */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 7vh; /* Mantiene lo stesso spazio per la barra */
+            }
+            
+            .top-navbar {
+                padding: 0 15px;
+            }
+            
+            .home-icon, .burger-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .navbar-title {
+                font-size: 18px;
+            }
+            
+            .turn-indicator {
+                right: 3px;
+                font-size: 16px;
+            }
+            
+            .deck-container {
+                left: 15px;
+            }
+            
+            .deck-count {
+                font-size: 20px;
+            }
+            
+            .captured-count {
+                font-size: 20px;
+            }
+            
+            .play-button {
+                width: 120px;
+                height: 45px;
+                font-size: 14px;
+                bottom: 160px;
+            }
+            
+            .play-triangle {
+                border-left: 25px solid white;
+                border-top: 15px solid transparent;
+                border-bottom: 15px solid transparent;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: 7vh; /* Mantiene lo stesso spazio per la barra */
+            }
+            
+            .top-navbar {
+                padding: 0 10px;
+            }
+            
+            .home-icon, .burger-icon {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .navbar-title {
+                font-size: 16px;
+            }
+            
+            .turn-indicator {
+                right: 2px;
+                font-size: 14px;
+            }
+            
+            .deck-container {
+                left: 10px;
+            }
+            
+            .deck-count {
+                font-size: 18px;
+            }
+            
+            .captured-count {
+                font-size: 18px;
+            }
+            
+            .play-button {
+                width: 100px;
+                height: 40px;
+                font-size: 12px;
+                bottom: 140px;
+            }
+            
+            .play-triangle {
+                border-left: 22px solid white;
+                border-top: 14px solid transparent;
+                border-bottom: 14px solid transparent;
+            }
+        }
+
+        .opponent-area:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .player-area:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Responsive design per schermi più piccoli */
+        @media (max-width: 768px) {
+            .opponent-area, .player-area {
+                padding: 12px;
+                height: 120px; /* Altezza fissa per mobile */
+                gap: 8px;
+                width: 90%; /* 90% della larghezza dello schermo */
+                max-width: 400px; /* Limite massimo per schermi molto grandi */
+                justify-content: space-between; /* Mazzetto a sinistra, carte al centro */
+            }
+            
+            .deck-back {
+                font-size: 25px;
+            }
+            
+            .area-label {
+                font-size: 12px;
+                padding: 4px 12px;
+            }
+
+            /* Stile per il mazzetto a sinistra */
+            .deck-container {
+                order: -1; /* Mette il mazzetto a sinistra */
+                margin-right: 15px;
+                flex-shrink: 0; /* Non si riduce */
+            }
+
+            /* Stile per le carte al centro */
+            .cards-container {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                flex: 1;
+            }
+        }
+
+        /* Per schermi molto piccoli */
+        @media (max-width: 480px) {
+            .opponent-area, .player-area {
+                width: 90%; /* Mantiene il 90% anche su schermi piccoli */
+                padding: 10px;
+                gap: 6px;
+                height: 110px; /* Altezza fissa per mobile piccolo */
+            }
+            
+            .deck-back {
+                font-size: 22px;
+            }
         }
 
 
     </style>
 </head>
 <body>
+    <!-- Barra di navigazione superiore -->
+    <nav class="top-navbar">
+        <div style="display: flex; gap: 10px;">
+            <button class="home-button" onclick="goHome()">
+                <i data-lucide="log-out" class="home-icon"></i>
+            </button>
+            <button class="restart-button" onclick="restartGame()">
+                <i data-lucide="refresh-cw" class="restart-icon"></i>
+            </button>
+        </div>
+        <div class="navbar-title">ZOZZETTA</div>
+        <button class="burger-button" onclick="toggleMenu()">
+            <i data-lucide="menu" class="burger-icon"></i>
+        </button>
+    </nav>
+
+    <!-- Indicatore del turno -->
+
+    <!-- Pulsante Distribuisci sopra il container del giocatore -->
+    <button class="play-button" id="playButton" onclick="startGame()">
+        DISTRIBUISCI
+    </button>
+
     <div class="game-table">
+        <!-- Indicatore del turno -->
+        <div class="turn-indicator" id="turnIndicator">Turno 1</div>
+
+        <!-- Mazzo delle carte -->
+        <div class="deck-container">
+            <div class="deck-card">
+                <div class="deck-back"></div>
+                <div class="deck-count" id="deckCount">40</div>
+            </div>
+        </div>
+
         <!-- Area avversario (carte retro) -->
         <div class="opponent-area">
-            <!-- Le carte del bot appariranno qui -->
+            <div class="area-label">BOT</div>
+            <div class="cards-container">
+                <!-- Le carte del bot appariranno qui -->
+            </div>
+            <!-- Contatore carte mangiate dal bot -->
+            <div class="bot-captured">
+                <div class="captured-deck">
+                    <div class="captured-card"></div>
+                    <div class="captured-count" id="botCapturedCount">0</div>
+                </div>
+            </div>
         </div>
 
         <!-- Centro tavolo -->
         <div class="table-center">
-            <div class="deck-container">
-                <div class="deck-card">
-                    <div class="deck-back">🂠</div>
-                </div>
-                <div class="deck-count" id="deckCount">40</div>
-                <button class="play-button" id="playButton" onclick="startGame()">PLAY</button>
-            </div>
-            <div class="table-text">ZOZZETTA</div>
-            <div class="turn-indicator" id="turnIndicator" style="display: none;">Turno 1</div>
             <div class="center-cards">
                 <!-- Le carte giocate appariranno qui -->
             </div>
@@ -263,22 +683,16 @@
 
         <!-- Area giocatore (carte napoletane) -->
         <div class="player-area">
-            <!-- Le carte del giocatore appariranno qui -->
-        </div>
-        
-        <!-- Contatore carte mangiate dal giocatore -->
-        <div class="player-captured">
-            <div class="captured-deck">
-                <div class="captured-card">🂠</div>
-                <div class="captured-count" id="playerCapturedCount">0</div>
+            <div class="area-label">GUEST</div>
+            <div class="cards-container">
+                <!-- Le carte del giocatore appariranno qui -->
             </div>
-        </div>
-        
-        <!-- Contatore carte mangiate dal bot -->
-        <div class="bot-captured">
-            <div class="captured-deck">
-                <div class="captured-card">🂠</div>
-                <div class="captured-count" id="botCapturedCount">0</div>
+            <!-- Contatore carte mangiate dal giocatore -->
+            <div class="player-captured">
+                <div class="captured-deck">
+                    <div class="captured-card"></div>
+                    <div class="captured-count" id="playerCapturedCount">0</div>
+                </div>
             </div>
         </div>
     </div>
@@ -371,7 +785,6 @@
             isBotTurnReallyFinished = true;
             const playButton = document.getElementById('playButton');
             playButton.disabled = true;
-            playButton.textContent = 'DISTRIBUENDO...';
             
             // Mescola il mazzo
             const shuffledDeck = shuffleDeck(fullDeck);
@@ -427,7 +840,7 @@
                     playButton.style.display = 'none';
                     
                     const turnIndicator = document.getElementById('turnIndicator');
-                    turnIndicator.style.display = 'block';
+                    turnIndicator.textContent = `Turno ${currentTurn}`;
                     
                     console.log('Distribuzione completata!');
                     console.log('Carte rimanenti nel mazzo:', 40 - usedCards.length);
@@ -443,7 +856,8 @@
         // Funzione per aggiornare le carte del giocatore
         function updatePlayerCards() {
             const playerArea = document.querySelector('.player-area');
-            playerArea.innerHTML = '';
+            const cardsContainer = playerArea.querySelector('.cards-container');
+            cardsContainer.innerHTML = '';
             
             playerHand.forEach((card, index) => {
                 const cardElement = document.createElement('div');
@@ -451,20 +865,21 @@
                 cardElement.style.backgroundImage = `url('${card.image}')`;
                 cardElement.onclick = () => playCard(cardElement);
                 cardElement.dataset.cardIndex = index;
-                playerArea.appendChild(cardElement);
+                cardsContainer.appendChild(cardElement);
             });
         }
 
         // Funzione per aggiornare le carte del bot
         function updateBotCards() {
             const opponentArea = document.querySelector('.opponent-area');
-            opponentArea.innerHTML = '';
+            const cardsContainer = opponentArea.querySelector('.cards-container');
+            cardsContainer.innerHTML = '';
             
             botHand.forEach((card, index) => {
                 const cardElement = document.createElement('div');
                 cardElement.className = 'card opponent-card';
-                cardElement.innerHTML = '<div class="card-back">🂠</div>';
-                opponentArea.appendChild(cardElement);
+                cardElement.innerHTML = '<div class="card-back"></div>';
+                cardsContainer.appendChild(cardElement);
             });
         }
 
@@ -809,8 +1224,6 @@
             // Aggiorna l'indicatore del turno
             const turnIndicator = document.getElementById('turnIndicator');
             turnIndicator.textContent = 'GIOCO FINITO';
-            turnIndicator.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
-            turnIndicator.style.color = 'white';
             
             console.log('Gioco finito! Non ci sono abbastanza carte per distribuire.');
         }
@@ -867,6 +1280,10 @@
                     const distributeButton = document.getElementById('distributeButton');
                     distributeButton.remove();
                     
+                    // Aggiorna l'indicatore del turno
+                    const turnIndicator = document.getElementById('turnIndicator');
+                    turnIndicator.textContent = `Turno ${currentTurn}`;
+                    
                     console.log(`Turno ${currentTurn} distribuito!`);
                     console.log('Carte rimanenti nel mazzo:', 40 - usedCards.length);
                     console.log('Carte del giocatore:', playerHand.length);
@@ -878,14 +1295,42 @@
         }
 
 
+        // Funzione per uscire dal gioco
+        function goHome() {
+            // Ricarica la pagina per tornare allo stato iniziale
+            location.reload();
+        }
+
+        function restartGame() {
+            // Riavvia la partita ricaricando la pagina
+            location.reload();
+        }
+
+        // Funzione per aprire/chiudere il menu
+        function toggleMenu() {
+            console.log('Menu burger cliccato');
+            // Qui puoi aggiungere la logica per aprire/chiudere un menu
+            alert('Menu - Funzionalità in arrivo!');
+        }
+
+        // Inizializza le icone Lucide
+        function initializeLucideIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
         // Inizializza il gioco al caricamento
         window.addEventListener('load', () => {
+            // Inizializza le icone Lucide
+            initializeLucideIcons();
+            
             // Inizializza con mazzo vuoto e contatore a 40
             updateDeckCount();
             
             // Nascondi le aree delle carte inizialmente
-            document.querySelector('.player-area').innerHTML = '';
-            document.querySelector('.opponent-area').innerHTML = '';
+            document.querySelector('.player-area .cards-container').innerHTML = '';
+            document.querySelector('.opponent-area .cards-container').innerHTML = '';
             document.querySelector('.center-cards').innerHTML = '';
         });
     </script>
